@@ -1,59 +1,109 @@
-//Panel gdzie gra będzie się znajdować
-
 package abcatcher;
-import javax.swing.JPanel;
-import java.awt.BasicStroke;
+
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Ellipse2D;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import javax.swing.JPanel;
+import javax.swing.Timer;
+import java.util.List;
 
-import java.awt.*;  //do wczytania obrazka
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+public class Board extends JPanel implements ActionListener {
 
-public class Board extends JPanel {
+    private final int ICRAFT_X = 40;
+    private final int ICRAFT_Y = 60;
+    private final int DELAY = 10;
+    private Timer timer;
+    private Girl girl;
+
+    public Board() {
+
+        initBoard();
+    }
+
+    private void initBoard() {
+
+        addKeyListener(new TAdapter());
+        setBackground(Color.BLACK);
+        setFocusable(true);
+
+        girl = new Girl(ICRAFT_X, ICRAFT_Y);
+
+        timer = new Timer(DELAY, this);
+        timer.start();
+    }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        drawDonut(g);
+        doDrawing(g);
+
+        Toolkit.getDefaultToolkit().sync();
     }
 
-    private void drawDonut(Graphics g) { /* dobrą praktyką jest delegowanie 
-                                         rzeczywistego malowania na określoną metodę*/ 
-        Graphics2D g2d = (Graphics2D) g; // klasa Graphics2D stanowi rozszerzenie klasy
-                                         // klasy Graphics. Zapewnia większą kontrolę nad 
-                                         // geometrią, transformacje współrzędnych, 
-                                         // zarządzanie kolorami i układ tekstu
-        RenderingHints rh   // Wygładzanie rysunku
-                = new RenderingHints(RenderingHints.KEY_ANTIALIASING,
-                        RenderingHints.VALUE_ANTIALIAS_ON);
+    private void doDrawing(Graphics g) {
 
-        rh.put(RenderingHints.KEY_RENDERING,
-                RenderingHints.VALUE_RENDER_QUALITY);
+        Graphics2D g2d = (Graphics2D) g;
+        
+        g2d.drawImage(girl.getImage(), girl.getX(),
+                girl.getY(), this);
 
-        g2d.setRenderingHints(rh);
+        List<Missile> missiles = girl.getMissiles();
 
-        Dimension size = getSize(); // pobieram szerokość i wysokość okna
-        double w = size.getWidth(); // potrzebuję je do wycentrowania donuta
-        double h = size.getHeight();// w oknie
+        for (Missile missile : missiles) {
+            
+            g2d.drawImage(missile.getImage(), missile.getX(),
+                    missile.getY(), this);
+        }
+    }
 
-        Ellipse2D e = new Ellipse2D.Double(0, 0, 150, 200); // tworzę elipsę
-        g2d.setStroke(new BasicStroke(1));
-        g2d.setColor(Color.gray);
+    @Override
+    public void actionPerformed(ActionEvent e) {
 
-        for (double deg = 0; deg < 360; deg += 5) { // tutaj obracam elipsę 72 razy
-            AffineTransform at                      // aby utworzyć kształt donuta
-                    = AffineTransform.getTranslateInstance(w/2, h/2);
-            at.rotate(Math.toRadians(deg));
-            g2d.draw(at.createTransformedShape(e));
+        updateMissiles();
+        updateGirl();
+
+        repaint();
+    }
+
+    private void updateMissiles() {
+
+        List<Missile> missiles = girl.getMissiles();
+
+        for (int i = 0; i < missiles.size(); i++) {
+
+            Missile missile = missiles.get(i);
+
+            if (missile.isVisible()) {
+
+                missile.move();
+            } else {
+
+                missiles.remove(i);
+            }
+        }
+    }
+
+    private void updateGirl() {
+
+        girl.move();
+    }
+
+    private class TAdapter extends KeyAdapter {
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+            girl.keyReleased(e);
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            girl.keyPressed(e);
         }
     }
 }
