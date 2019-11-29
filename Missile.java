@@ -1,9 +1,9 @@
-package abcatcher;
+package skeleton;
 
 public class Missile extends Sprite {
 
-    private final int BOARD_WIDTH = 100;
-    private final int MISSILE_SPEED = 1;
+    private final int BOARD_WIDTH = 1080;
+    private final int MISSILE_SPEED = 2;
 
     public Missile(int x, int y) {
         super(x, y);
@@ -13,7 +13,7 @@ public class Missile extends Sprite {
     
     private void initMissile() {
         
-        loadImage("src/images/bron/pocisk1.png");  
+        loadImage("src/images/11.png");  
         getImageDimensions();
     }
 
@@ -21,7 +21,7 @@ public class Missile extends Sprite {
         
         x += MISSILE_SPEED;
         
-        if (x > BOARD_WIDTH) {
+        if (x > BOARD_WIDTH) { // Gdy pocisk uderzy w prawą krawędź tablicy, staje się niewidzialny 
             visible = false;
         }
     }
